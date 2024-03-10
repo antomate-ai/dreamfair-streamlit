@@ -1,7 +1,6 @@
 
 import streamlit as st
 from openai import OpenAI
-
 # Set up logger for error logging
 LOGGER = st.logger.get_logger(__name__)
 
@@ -40,7 +39,7 @@ def generate_script(synopsis, script_style, video_duration):
     Returns:
         str: The generated script or an error message.
     """
-    prompt = f"Generate a script in the style of {script_style} for a video lasting {video_duration}, inspired by the following synopsis: {synopsis}. After generating the script write the storyboards as image or storyboard descriptions with the following annotation: Image (Image Number): Storyboard descriptions"
+    prompt = f"Generate a script in the style of {script_style} for a video lasting {video_duration}, inspired by the following synopsis: {synopsis}. After generating the script write the storyboards as image or storyboard descriptions with the following annotation: Image (Image Number): Storyboard descriptions. Be aware the every image description is in sperated line and without any additional characters "
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -82,6 +81,8 @@ def generate_storyboards(script, storyboard_style, detailed, colored):
             n=1,
             )
             images_urls.append(response.data[0].url)
+            
+            st.image(response.data[0].url,caption=image_prompt,width=400)
         except Exception as e:
             images_urls.append("img.png")
             LOGGER.error(f"Error generating storyboards: {e}")
@@ -116,10 +117,7 @@ def run():
     board_color = st.checkbox("Colored")
     if st.button('Generate Storyboard'):
         if st.session_state.generated_script:
-            images = generate_storyboards(st.session_state.generated_script, storyboard_style, board_details, board_color)
-            for idx, img_url in enumerate(images):
-                print(img_url)
-                st.image(img_url)  # Display the image
+            generate_storyboards(st.session_state.generated_script, storyboard_style, board_details, board_color)
         else:
             st.error("Please generate a script first before creating storyboards.")
 run()
